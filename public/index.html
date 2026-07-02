@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>27년 성수기 매출예측 — 월별 협의 보드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">SB</span>
+      <div class="brand-text">
+        <h1>27년 성수기 매출예측 — 월별 협의 보드</h1>
+        <p>슬로우베드 SCM · 26.10 ~ 27.4월 월별 성장률 협의 및 근거 기록</p>
+      </div>
+    </div>
+    <div class="identity">
+      <span id="syncStatus" class="sync-status" title="동기화 상태">●</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="layout-grid">
+
+    <!-- 왼쪽 컬럼도 오른쪽과 동일한 패턴: 바깥(layout-left)이 테두리/모서리를 담당하고,
+         안쪽(layout-left-scroll)이 실제 스크롤을 담당 — 차트+대외변수가 화면보다 길어져도
+         스크롤이 카드 프레임 밖으로 삐져나오지 않고 그 안에서만 일어나게 함 -->
+    <div class="layout-left">
+      <div class="layout-left-scroll">
+        <!-- 차트: 25.1월 ~ 27.4월 전체 매출 추이 -->
+        <section class="left-block">
+          <div class="panel-head">
+            <h2>25.1월 ~ 27.4월 매출 추이</h2>
+            <span class="meta">금액은 공장도가 기준입니다</span>
+          </div>
+          <div class="chart-wrap"><canvas id="forecastChart"></canvas></div>
+          <div class="chart-legend" id="chartLegend"></div>
+        </section>
+
+        <!-- 대외변수 참고 (공통 섹션, 월별 카드 반복 노출 안 함) -->
+        <section class="left-block">
+          <div class="panel-head">
+            <h2>대외변수 참고</h2>
+            <span class="meta">모든 월에 공통으로 적용되는 정성적 참고자료</span>
+          </div>
+          <div class="extvar-grid" id="extVarsSection"><!-- JS 렌더 --></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 월별 협의 보드: 바깥(layout-right)은 테두리/모서리만 담당, 안쪽(layout-right-scroll)이
+         실제 스크롤을 담당 — 스크롤 중에도 상하단 모서리가 잘려 보이지 않도록 분리 -->
+    <div class="layout-right">
+      <div class="panel-head">
+        <h2>월별 성장률 협의</h2>
+        <span class="meta">최종 협의 성장률을 합의하면 입력해주세요. 비어있으면 로직 근거 성장률로 잠정 계산됩니다.</span>
+      </div>
+      <div class="layout-right-scroll">
+        <div class="month-board" id="monthBoard"><!-- JS 렌더 --></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
