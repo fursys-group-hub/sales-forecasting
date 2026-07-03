@@ -102,22 +102,32 @@ SCM이 자체적으로 시나리오 기반 예측 모델을 만들었고, 이를
   폴링 병행
 - **배포**: Coolify (git 레포 기반, `Dockerfile` 포함되어 있음)
 - GitHub Pages는 여전히 배포 후보 아님 (서버가 필요해서)
-- **git 저장소**: 오늘 로컬에 `git init` 완료, 커밋도 로컬에 되어 있음. **원격 저장소는
-  아직 연결 안 됨** — Coolify에 연결하려면 원격 레포(사내 Git 서버든 GitHub든)부터 필요
+- **git 저장소**: 원격 연결 완료 — `https://github.com/fursys-group-hub/sales-forecasting.git`,
+  브랜치 `main`, 로컬 커밋까지 전부 push됨 (2026-07-03)
+- **배포 작업 분담 (2026-07-03 확정)**: Coolify 대시보드 연결 및 실제 배포는 **IT팀 담당자가
+  코드를 받아 직접 진행**. 우리 쪽(이 세션) 담당 범위는 "로컬에서 정상 동작 확인 + IT팀이
+  바로 연결할 수 있는 인수인계 패키지(README.md "IT팀 인수인계" 섹션) 정리"까지로 한정됨.
+  Coolify 대시보드 접근 권한 자체가 없어 실제 리소스 생성·환경변수 입력·배포·접속 테스트는
+  수행 불가 — README의 인수인계 섹션이 그 역할을 대신함
 
-### 미확정 (확인 필요)
+### 미확정 (IT팀이 배포 시 확인해야 할 사항 — 우리 쪽에서 확정 불가)
 - `DATABASE_URL` 크리덴셜의 권한 레벨 (Realtime publication/RLS 정책을 앱 크리덴셜로
-  실행 가능한지, 아니면 별도 관리자 권한이 필요한지) — `sql/enable_realtime.sql` 참고
+  실행 가능한지, 아니면 별도 관리자 권한이 필요한지) — `sql/enable_realtime.sql` 참고.
+  이 Supabase 인스턴스와 크리덴셜은 회사 IT 계정에서 발급받은 것이라 우리 쪽에서 권한
+  범위를 알 수 없음
 - Postgres 접속 시 SSL 필요 여부 (사내망 직접 연결인지 TLS 종단 프록시 경유인지)
-- Coolify에 연결할 git 원격 저장소 (로컬 커밋까지만 되어 있고 원격은 아직 미정)
-- 실제 Supabase 프로젝트에 스키마가 적용되어 있는지 (아직 미확인)
 
-## 다음 단계 (여기서부터 이어서 작업)
+## 다음 단계 (완료 — 이후는 IT팀 담당 영역)
 
-- [ ] 배포 준비 상태 점검 (`.env.example` 최신화, `.gitignore` 확인, Coolify 인식용
-      `package.json` engines/scripts 정리, `process.env.PORT` 사용 확인)
-- [ ] README.md에 "Coolify 배포 체크리스트" 섹션 추가 (환경변수 목록, Supabase 대시보드에서
-      수동으로 할 일 — 테이블 생성 SQL 실행, 해당 테이블 Realtime 활성화 — Coolify 레포
-      연결 설정값)
-- [ ] 실제 Supabase 프로젝트에 스키마 적용 여부 확인
-- [ ] Coolify에 배포 후 실제 접속 테스트
+- [x] 배포 준비 상태 점검 (`.env.example`, `.gitignore`, `package.json` scripts,
+      `process.env.PORT` 사용 모두 확인 완료, 수정 불필요)
+- [x] `sql/enable_realtime.sql`이 폐기된 `assumptions`/`history` 테이블을 참조하던 버그
+      발견·수정 (실제 구독 대상인 `month_assumptions` 기준으로 교체, 2026-07-03)
+- [x] 원격 저장소 연결 및 push (`main` 브랜치)
+- [x] README.md에 "IT팀 인수인계" 섹션 추가 (필요 조건, 환경변수, Supabase 수동 SQL,
+      로컬 테스트 방법, Coolify 연결 설정값, 미확정 사항)
+- [x] 로컬 환경 실동작 검증 — 실제 Supabase 접근 권한이 없어, `pg` 드라이버를 인메모리
+      Postgres 호환 엔진(`pg-mem`)으로 임시 치환해 `db.js`/`server.js`/`forecast.js`
+      전체 스택을 그대로 실행. 테이블 자동 생성/시드, 예측 계산, 저장/미확정 복귀, 잘못된
+      요청 거부, 정적 파일 서빙 모두 정상 확인 (테스트 코드는 검증 후 제거, 레포에 흔적 없음)
+- [ ] (IT팀 담당) 실제 Supabase 프로젝트 접근 확보 후 Coolify 연결·배포·접속 테스트

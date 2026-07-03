@@ -26,30 +26,62 @@ npm start
 실제 Postgres를 가리키지 않으면 API가 실패합니다. `SUPABASE_URL`/`SUPABASE_ANON_KEY`가
 비어있으면 프론트는 Realtime 없이 60초 폴링만으로 동작합니다.
 
-## Coolify 배포 체크리스트
+## IT팀 인수인계 (Coolify 연결 담당자용)
 
-이 레포에는 `Dockerfile`이 포함되어 있어 Coolify에서 Dockerfile 기반 앱으로 바로 인식됩니다.
+개발 쪽에서는 **로컬 환경에서 정상 동작하는 것까지만** 확인했습니다. Coolify 대시보드 연결과
+실제 배포는 IT팀에서 코드를 받아 직접 진행합니다. 아래 내용이면 별도 문의 없이 연결·배포가
+가능할 겁니다 — 막히면 이 레포 관리자에게 문의해주세요.
 
-### 필요한 환경변수 (Coolify 환경변수 화면에만 입력, 커밋/채팅에 남기지 말 것)
+### 이 앱이 필요로 하는 것
 
-| 변수 | 용도 |
-| --- | --- |
-| `DATABASE_URL` | 서버 전용 Postgres 연결 문자열 (`pg.Pool`), 브라우저에 노출 안 됨 |
-| `SUPABASE_URL` | `GET /api/config`를 통해 브라우저에 그대로 노출됨 (Realtime 구독용) |
-| `SUPABASE_ANON_KEY` | 위와 동일 경로로 노출 — anon key만 사용, **service_role 키 절대 금지** |
-| `PORT` | 선택. 미지정 시 `4747` 기본값 (`server.js`, `Dockerfile` 둘 다 동일) |
+- **Node.js 22+** 런타임 (레포에 포함된 `Dockerfile`이 `node:22-alpine`을 쓰므로, Docker로
+  빌드하면 Node를 별도로 설치할 필요 없음)
+- **Postgres 연결 1개** (사내 Supabase Self-hosted 인스턴스) — 이 앱이 배포되는 서버/컨테이너에서
+  해당 Postgres로 네트워크 접근이 가능해야 함 (같은 사내망/VPC 안에 있어야 함)
+- **포트 1개** (기본 `4747`, `PORT` 환경변수로 변경 가능)
+- **상시 실행 프로세스** — 서버리스/단발성 함수가 아니라 Express 서버가 계속 떠 있어야 하는
+  구조 (DB 커넥션 풀을 프로세스 시작 시 한 번 맺고 계속 재사용)
 
-### Supabase 대시보드에서 수동으로 해야 하는 일
+### 필요한 환경변수 (`.env.example` 참고, 값은 Coolify 환경변수 화면에만 입력)
 
-- [ ] **테이블 생성**: 별도 수동 작업 불필요 — 앱 최초 기동 시 `db.js`의 `initDb()`가
-      `historical_sales`/`month_assumptions` 테이블 생성과 기본 시드값 삽입을 자동 수행함
-      (이미 있으면 `ON CONFLICT DO NOTHING`으로 건너뜀. 구 버전 `assumptions`/`history` 테이블,
-      `oem_addback`/`updated_by` 컬럼은 자동으로 DROP됨)
-- [ ] **Realtime 활성화 (수동 필수)**: DB 관리자가 `sql/enable_realtime.sql`을 앱 크리덴셜
-      (`DATABASE_URL`)이 아닌 **관리자 권한**으로 1회 수동 실행 — `month_assumptions` 테이블을
-      퍼블리케이션에 등록 + RLS 활성화 + anon SELECT 정책 부여. 매 배포마다 재실행할 필요 없음
-      (2026-07-03: 이 스크립트가 실제로는 폐기된 `assumptions`/`history` 테이블을 참조하던
-      버그가 있어 `month_assumptions` 기준으로 수정함)
+| 변수 | 필수 | 설명 |
+| --- | --- | --- |
+| `DATABASE_URL` | 필수 | 서버 전용 Postgres 연결 문자열 (`pg.Pool`), 브라우저에 노출 안 됨 |
+| `SUPABASE_URL` | 필수 | `GET /api/config`를 통해 브라우저에 그대로 노출됨 (Realtime 구독용) |
+| `SUPABASE_ANON_KEY` | 필수 | 위와 동일 경로로 노출 — anon key만 사용, **service_role 키 절대 금지** |
+| `PORT` | 선택 | 미지정 시 `4747` 기본값 (`server.js`, `Dockerfile` 둘 다 동일) |
+
+### Supabase 쪽에서 실행해야 하는 SQL
+
+- **테이블 생성은 수동 작업 불필요**: 앱 최초 기동 시 `db.js`의 `initDb()`가
+  `historical_sales`/`month_assumptions` 테이블 생성과 기본 시드값 삽입을 자동 수행함
+  (이미 있으면 `ON CONFLICT DO NOTHING`으로 건너뜀. 구 버전 `assumptions`/`history` 테이블,
+  `oem_addback`/`updated_by` 컬럼은 자동으로 DROP됨)
+- **`sql/enable_realtime.sql` — 수동 실행 필요**: `month_assumptions` 테이블을 Realtime
+  퍼블리케이션에 등록 + RLS 활성화 + anon SELECT 정책 부여. **앱의 `DATABASE_URL` 크리덴셜이
+  아닌 관리자 권한**으로 Supabase SQL Editor 등에서 1회 실행 (매 배포마다 재실행 불필요)
+
+### 로컬에서 이 앱을 테스트하는 방법
+
+```bash
+cp .env.example .env   # DATABASE_URL 등 채워넣기
+npm install
+npm start
+# http://localhost:4747
+```
+
+또는 Docker로:
+
+```bash
+docker build -t forecast-collab-tool .
+docker run -p 4747:4747 --env-file .env forecast-collab-tool
+```
+
+(2026-07-03: 실제 Supabase 인스턴스 접근 권한이 아직 없는 상태에서, `pg` 드라이버를 인메모리
+Postgres 호환 엔진(`pg-mem`)으로 임시 치환해 `db.js`/`server.js`/`forecast.js`를 그대로
+로컬 실행 — 테이블 자동 생성/시드, 예측 계산, `PUT /api/month/:ym` 저장·미확정 복귀, 잘못된
+월 파라미터 거부, 정적 파일 서빙까지 모두 정상 동작 확인함. 이 테스트용 코드/의존성은 실제
+레포에는 포함되어 있지 않음)
 
 ### Coolify에서 레포 연결 시 설정값
 
@@ -58,6 +90,13 @@ npm start
   (`package.json`의 `scripts.start`와 동일 커맨드)
 - **포트**: `4747` (Dockerfile `EXPOSE 4747` / `server.js` 기본값과 일치 — Coolify 포트 매핑에서
   이 포트로 프록시하도록 설정)
+
+### 확인이 필요한 미확정 사항
+
+- `DATABASE_URL` 크리덴셜의 권한 레벨 — `sql/enable_realtime.sql`(퍼블리케이션/RLS 관리)까지
+  이 크리덴셜로 실행 가능한지, 아니면 별도 관리자 계정이 필요한지
+- Postgres 접속 시 SSL 필요 여부 (사내망 직접 연결인지 TLS 종단 프록시 경유인지에 따라
+  `DATABASE_URL`에 `?sslmode=require` 추가가 필요할 수 있음)
 
 ## UI 구조
 
