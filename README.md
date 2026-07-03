@@ -26,20 +26,38 @@ npm start
 실제 Postgres를 가리키지 않으면 API가 실패합니다. `SUPABASE_URL`/`SUPABASE_ANON_KEY`가
 비어있으면 프론트는 Realtime 없이 60초 폴링만으로 동작합니다.
 
-## Coolify 배포
+## Coolify 배포 체크리스트
 
 이 레포에는 `Dockerfile`이 포함되어 있어 Coolify에서 Dockerfile 기반 앱으로 바로 인식됩니다.
 
-1. 이 프로젝트를 git 레포로 만들어 Coolify가 접근 가능한 원격지에 푸시
-2. Coolify에서 새 애플리케이션 생성 → 해당 레포 연결 → 빌드팩은 Dockerfile 선택
-3. Coolify 환경변수 화면에서 `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `PORT`(선택) 설정
-   — **절대 채팅/커밋에 실제 크리덴셜을 남기지 말 것**, Coolify UI에만 입력
-4. 배포 후, DB 관리자가 `sql/enable_realtime.sql`을 앱 크리덴셜이 아닌 관리자 권한으로 1회 수동 실행
-   (Realtime publication 등록 + RLS 정책 — 매 배포마다 돌릴 필요 없음. `month_assumptions`
-   테이블을 대상으로 함)
-5. 최초 기동 시 `db.js`의 `initDb()`가 테이블 생성 + 기본 시드값 삽입을 자동으로 수행합니다
-   (이미 있으면 건너뜀 — `ON CONFLICT DO NOTHING`. 구 버전의 `assumptions`/`history` 테이블,
-   `oem_addback`/`updated_by` 컬럼은 자동으로 DROP됨)
+### 필요한 환경변수 (Coolify 환경변수 화면에만 입력, 커밋/채팅에 남기지 말 것)
+
+| 변수 | 용도 |
+| --- | --- |
+| `DATABASE_URL` | 서버 전용 Postgres 연결 문자열 (`pg.Pool`), 브라우저에 노출 안 됨 |
+| `SUPABASE_URL` | `GET /api/config`를 통해 브라우저에 그대로 노출됨 (Realtime 구독용) |
+| `SUPABASE_ANON_KEY` | 위와 동일 경로로 노출 — anon key만 사용, **service_role 키 절대 금지** |
+| `PORT` | 선택. 미지정 시 `4747` 기본값 (`server.js`, `Dockerfile` 둘 다 동일) |
+
+### Supabase 대시보드에서 수동으로 해야 하는 일
+
+- [ ] **테이블 생성**: 별도 수동 작업 불필요 — 앱 최초 기동 시 `db.js`의 `initDb()`가
+      `historical_sales`/`month_assumptions` 테이블 생성과 기본 시드값 삽입을 자동 수행함
+      (이미 있으면 `ON CONFLICT DO NOTHING`으로 건너뜀. 구 버전 `assumptions`/`history` 테이블,
+      `oem_addback`/`updated_by` 컬럼은 자동으로 DROP됨)
+- [ ] **Realtime 활성화 (수동 필수)**: DB 관리자가 `sql/enable_realtime.sql`을 앱 크리덴셜
+      (`DATABASE_URL`)이 아닌 **관리자 권한**으로 1회 수동 실행 — `month_assumptions` 테이블을
+      퍼블리케이션에 등록 + RLS 활성화 + anon SELECT 정책 부여. 매 배포마다 재실행할 필요 없음
+      (2026-07-03: 이 스크립트가 실제로는 폐기된 `assumptions`/`history` 테이블을 참조하던
+      버그가 있어 `month_assumptions` 기준으로 수정함)
+
+### Coolify에서 레포 연결 시 설정값
+
+- **빌드팩**: Dockerfile (레포 루트에 `Dockerfile` 존재 — Coolify가 자동 인식, Nixpacks 아님)
+- **시작 명령**: 별도 지정 불필요 — `Dockerfile`의 `CMD ["node", "server.js"]`가 그대로 사용됨
+  (`package.json`의 `scripts.start`와 동일 커맨드)
+- **포트**: `4747` (Dockerfile `EXPOSE 4747` / `server.js` 기본값과 일치 — Coolify 포트 매핑에서
+  이 포트로 프록시하도록 설정)
 
 ## UI 구조
 
