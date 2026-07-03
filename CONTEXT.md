@@ -117,6 +117,24 @@ SCM이 자체적으로 시나리오 기반 예측 모델을 만들었고, 이를
   범위를 알 수 없음
 - Postgres 접속 시 SSL 필요 여부 (사내망 직접 연결인지 TLS 종단 프록시 경유인지)
 
+## 프로덕션 DB 변경 작업 프로세스 (2026-07-03 확정, 회사 보안 정책)
+
+**`DATABASE_URL`은 어떤 경우에도 Claude Code 세션에 입력하지 않는다.** 회사 보안 정책상
+AI 세션이 프로덕션 DB 크리덴셜을 직접 보유·접속하는 것 자체가 금지됨. 이전에 로컬 검증
+목적으로 `pg-mem`(인메모리 Postgres 에뮬레이터)을 썼던 것은 실제 프로덕션 크리덴셜이
+아니라 가짜 로컬 DB였으므로 이 정책과 무관함 — 실제 프로덕션 DB 접속 자체가 금지 대상.
+
+DB 변경(조회 포함 여부와 무관하게 UPDATE/DELETE 등 변경이 필요한 경우)이 필요하면:
+1. Claude Code는 `sql/` 폴더에 SQL 스크립트 파일만 준비한다 (실행하지 않음)
+2. 변경 전 상태를 먼저 확인할 수 있는 순수 조회(SELECT) 스크립트를 별도 파일로 함께 제공
+3. 변경 스크립트는 `BEGIN ... COMMIT` 트랜잭션으로 감싸고, 변경 전/후 상태를 스크립트 안에서
+   SELECT로 비교할 수 있게 구성, 건드리면 안 되는 컬럼(`final_growth` 등 팀 협의값)은 SET
+   절에서 명시적으로 제외
+4. 실제 실행은 사용자가 Supabase SQL Editor에서 직접 하거나 IT팀에 전달해서 처리한다
+
+예시: `sql/check_final_growth.sql`(조회 전용), `sql/update_reference_growth_holtwinters.sql`
+(트랜잭션 UPDATE) — 둘 다 민감정보 없는 순수 SQL이라 git에 커밋됨.
+
 ## 다음 단계 (완료 — 이후는 IT팀 담당 영역)
 
 - [x] 배포 준비 상태 점검 (`.env.example`, `.gitignore`, `package.json` scripts,

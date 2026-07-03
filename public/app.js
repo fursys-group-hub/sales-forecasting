@@ -272,7 +272,9 @@ function monthCard(m) {
   const refRow = el('div', 'mc-row mc-reference' + (m.isFinal ? '' : ' mc-muted'));
   refRow.appendChild(el('div', 'mc-row-label', '로직 근거 성장률' + (m.isFinal ? '' : ' (잠정)')));
   refRow.appendChild(el('div', 'mc-row-value', fmtPct(m.referenceGrowth)));
-  refRow.appendChild(el('div', 'mc-row-note', m.referenceRationale));
+  const refNote = el('div', 'mc-row-note', m.referenceRationale);
+  refNote.title = m.referenceRationale;
+  refRow.appendChild(refNote);
   card.appendChild(refRow);
 
   // 매장(유통) 변동 / 신제품 출시 (짧은 자유서술 2칸, blur 시 저장)

@@ -186,7 +186,15 @@ main {
 .mc-row-label { font-size: 11px; color: var(--ink-soft); font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
 .mc-row-value { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--ink); }
 .mc-row-value.big { font-size: 18px; color: var(--navy-800); }
-.mc-row-note { font-size: 10.5px; color: var(--ink-soft); margin-top: 2px; }
+.mc-row-note {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: help;
+}
 
 .mc-reference.mc-muted .mc-row-value,
 .mc-reference.mc-muted .mc-row-note { color: var(--ink-faint); }
