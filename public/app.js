@@ -214,8 +214,11 @@ function renderTrendChart(historicalSales, forecastMonths) {
         callbacks: {
           label: (tctx) => {
             const p = points[tctx.dataIndex];
-            if (tctx.dataset.yAxisID === 'y1') return `YoY 성장률: ${fmtPct(p.growth)}`;
-            return `${TREND_STATUS_META[p.status].label}: ${fmtNum(p.value, 1)} 백만원`;
+            // 값 자체는 tctx.raw(현재 차트 데이터)를 읽는다 — 카드의 하한/중심/상한 토글이
+            // 매출/성장률 미리보기 값을 차트 데이터에 직접 반영하므로, 여기서 p.value/p.growth를
+            // 쓰면 토글 클릭 이후 툴팁이 미리보기 이전 값을 보여주는 불일치가 생긴다.
+            if (tctx.dataset.yAxisID === 'y1') return `YoY 성장률: ${fmtPct(tctx.raw)}`;
+            return `${TREND_STATUS_META[p.status].label}: ${fmtNum(tctx.raw, 1)} 백만원`;
           },
         },
       },
@@ -246,6 +249,19 @@ function renderTrendChart(historicalSales, forecastMonths) {
   }
 
   renderChartLegend();
+}
+
+// 카드의 하한/중심/상한 토글 클릭 시, 왼쪽 매출 추이 차트의 해당 월 막대(매출)와
+// 꺾은선(YoY 성장률)도 같이 미리보기로 반영한다. 서버 재요청/저장 없이 Chart.js
+// 데이터 배열만 직접 수정 — 다음 renderAll(폴링/저장 응답)이 오면 실제 값으로 되돌아간다.
+function updateChartPreview(ym, revenue, growth) {
+  if (!chart || !state) return;
+  const monthIndex = MONTHS.findIndex((m) => m.ym === ym);
+  if (monthIndex === -1) return;
+  const idx = state.historicalSales.length + monthIndex;
+  chart.data.datasets[0].data[idx] = revenue;
+  chart.data.datasets[1].data[idx] = growth;
+  chart.update('none');
 }
 
 // 대외변수 참고 — 모든 월에 공통이라 카드 그리드 위쪽에 한 번만 렌더 (정적 콘텐츠, state와 무관)
@@ -314,6 +330,7 @@ function monthCard(m) {
         buttons.forEach((otherBtn, i) => otherBtn.classList.toggle('active', bounds[i].key === selectedKey));
         const previewRevenue = m.priorValue * (1 + b.growth);
         revValueEl.textContent = `${fmtNum(previewRevenue, 1)} 백만원`;
+        updateChartPreview(m.ym, previewRevenue, b.growth);
       });
       toggle.appendChild(btn);
       return btn;
