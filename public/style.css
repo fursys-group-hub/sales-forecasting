@@ -199,6 +199,30 @@ main {
 .mc-reference.mc-muted .mc-row-value,
 .mc-reference.mc-muted .mc-row-note { color: var(--ink-faint); }
 
+.mc-bound-toggle { display: flex; gap: 4px; }
+.mc-bound-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 5px 3px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.mc-bound-btn:hover { border-color: var(--navy-700); color: var(--navy-800); }
+.mc-bound-btn.active {
+  background: var(--navy-800);
+  border-color: var(--navy-800);
+  color: #fff;
+}
+
 .mc-context textarea {
   width: 100%;
   min-height: 40px;

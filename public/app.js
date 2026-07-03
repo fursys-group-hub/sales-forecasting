@@ -8,6 +8,19 @@ const MONTHS = [
   { ym: '202704', label: '27.04월' },
 ];
 
+// Holt-Winters 예측 시 이미 계산해둔 90% 예측구간 고정 수치 (2026-07-03).
+// 중심값은 여기 저장하지 않고 서버의 assumptions[ym].reference_growth를 그대로 사용한다 —
+// 같은 숫자를 두 곳에 저장하면 나중에 한쪽만 갱신하고 다른 쪽을 깜빡하는 사고가 남는다.
+const REFERENCE_GROWTH_RANGE = {
+  '202610': { low: -0.113, high: 0.192 },
+  '202611': { low: -0.189, high: 0.128 },
+  '202612': { low: -0.202, high: 0.088 },
+  '202701': { low: -0.167, high: 0.119 },
+  '202702': { low: -0.218, high: 0.028 },
+  '202703': { low: -0.169, high: 0.085 },
+  '202704': { low: -0.127, high: 0.197 },
+};
+
 const EXT_VARS = [
   {
     title: '소비자심리지수(CCSI)',
@@ -72,6 +85,11 @@ function fmtNum(n, digits = 1) {
 function fmtPct(n, digits = 1) {
   if (n === null || n === undefined || Number.isNaN(Number(n))) return '-';
   return `${(Number(n) * 100).toFixed(digits)}%`;
+}
+function fmtPctSigned(n, digits = 1) {
+  if (n === null || n === undefined || Number.isNaN(Number(n))) return '-';
+  const pct = Number(n) * 100;
+  return `${pct >= 0 ? '+' : ''}${pct.toFixed(digits)}%`;
 }
 
 function showToast(msg, isError) {
@@ -268,10 +286,43 @@ function monthCard(m) {
   head.appendChild(el('div', 'prior-value', `전년동월 ${fmtNum(m.priorValue, 1)}백만원`));
   card.appendChild(head);
 
-  // 로직 근거 성장률 (읽기전용) — 최종 협의값이 없으면 잠정치로 흐리게 표시
+  // 예상 매출 값 엘리먼트 — 아래서 카드에 append하지만, 하한/중심/상한 토글 클릭 시
+  // 이 값을 직접 갱신해야 해서 참조를 먼저 만들어둔다 (서버 재요청 없이 로컬 미리보기).
+  const revValueEl = el('div', 'mc-row-value big', `${fmtNum(m.revenue, 1)} 백만원`);
+
+  // 로직 근거 성장률 — 최종 협의 전(잠정): 하한/중심/상한 3버튼 토글로 시나리오 미리보기.
+  // 최종 협의 후: 이미 확정 매출을 보여주고 있으므로 토글은 의미가 없어 참고용 단일값만 표시.
+  const range = REFERENCE_GROWTH_RANGE[m.ym];
   const refRow = el('div', 'mc-row mc-reference' + (m.isFinal ? '' : ' mc-muted'));
   refRow.appendChild(el('div', 'mc-row-label', '로직 근거 성장률' + (m.isFinal ? '' : ' (잠정)')));
-  refRow.appendChild(el('div', 'mc-row-value', fmtPct(m.referenceGrowth)));
+
+  if (!m.isFinal && range) {
+    const toggle = el('div', 'mc-bound-toggle');
+    const bounds = [
+      { key: 'low', label: '하한', growth: range.low },
+      { key: 'center', label: '중심', growth: m.referenceGrowth },
+      { key: 'high', label: '상한', growth: range.high },
+    ];
+    let selectedKey = 'center';
+    const buttons = bounds.map((b) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mc-bound-btn' + (b.key === selectedKey ? ' active' : '');
+      btn.textContent = `${b.label} ${fmtPctSigned(b.growth)}`;
+      btn.addEventListener('click', () => {
+        selectedKey = b.key;
+        buttons.forEach((otherBtn, i) => otherBtn.classList.toggle('active', bounds[i].key === selectedKey));
+        const previewRevenue = m.priorValue * (1 + b.growth);
+        revValueEl.textContent = `${fmtNum(previewRevenue, 1)} 백만원`;
+      });
+      toggle.appendChild(btn);
+      return btn;
+    });
+    refRow.appendChild(toggle);
+  } else {
+    refRow.appendChild(el('div', 'mc-row-value', fmtPct(m.referenceGrowth)));
+  }
+
   const refNote = el('div', 'mc-row-note', m.referenceRationale);
   refNote.title = m.referenceRationale;
   refRow.appendChild(refNote);
@@ -305,7 +356,7 @@ function monthCard(m) {
   const revLabel = el('div', 'mc-row-label', '예상 매출 ');
   if (!m.isFinal) revLabel.appendChild(el('span', 'tag-provisional', '(잠정)'));
   revRow.appendChild(revLabel);
-  revRow.appendChild(el('div', 'mc-row-value big', `${fmtNum(m.revenue, 1)} 백만원`));
+  revRow.appendChild(revValueEl);
   card.appendChild(revRow);
 
   return card;
