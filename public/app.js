@@ -310,7 +310,7 @@ function monthCard(m) {
   // 최종 협의 후: 이미 확정 매출을 보여주고 있으므로 토글은 의미가 없어 참고용 단일값만 표시.
   const range = REFERENCE_GROWTH_RANGE[m.ym];
   const refRow = el('div', 'mc-row mc-reference' + (m.isFinal ? '' : ' mc-muted'));
-  refRow.appendChild(el('div', 'mc-row-label', '로직 근거 성장률' + (m.isFinal ? '' : ' (잠정)')));
+  refRow.appendChild(el('div', 'mc-row-label', '통계모델 예측 성장률' + (m.isFinal ? '' : ' (잠정)')));
 
   if (!m.isFinal && range) {
     const toggle = el('div', 'mc-bound-toggle');

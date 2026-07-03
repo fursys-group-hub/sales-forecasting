@@ -3,15 +3,26 @@
   --navy-800: #1f3864;
   --navy-700: #2a4a86;
   --navy-100: #eaf0fb;
-  --ink: #1c2333;
-  --ink-soft: #5a6478;
-  --ink-faint: #98a0b3;
-  --paper: #f6f7fb;
-  --card: #ffffff;
-  --line: #dde2ee;
-  --amber: #d97a1f;
-  --amber-bg: #fdf1e0;
-  --green: #2e7d4f;
+
+  /* 텍스트 위계 — strong(핵심 숫자) > base(본문) > muted(라벨/보조설명) > faint(placeholder/최하위 참고) */
+  --text-strong: #10182f;
+  --text-base: #1c2333;
+  --text-muted: #667089;
+  --text-faint: #a3aabb;
+
+  /* 표면 위계 — page(바탕) < panel(좌/우 프레임) < card(카드, panel보다 살짝 그레이시하게 떠 보이게) */
+  --bg-page: #eef0f5;
+  --bg-panel: #ffffff;
+  --bg-card: #fafbfc;
+  --border: #e3e7ef;
+  --border-strong: #d7dce7;
+
+  /* 상태색 — 채도/명도를 서로 맞춘 한 쌍 (미확정=amber, 협의완료=green) */
+  --amber: #b5690f;
+  --amber-bg: #faf0de;
+  --green: #1f7a52;
+  --green-bg: #e5f4ec;
+
   --radius: 10px;
   --mono: "SF Mono", "Roboto Mono", ui-monospace, Consolas, monospace;
 }
@@ -22,8 +33,8 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--bg-page);
+  color: var(--text-base);
   font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
   line-height: 1.5;
@@ -76,7 +87,7 @@ main {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 22px 24px 24px;
+  padding: 24px 24px 24px;
 }
 
 .layout-grid {
@@ -84,7 +95,7 @@ main {
   min-height: 0;
   display: grid;
   grid-template-columns: 42% 1fr;
-  gap: 18px;
+  gap: 16px;
 }
 
 /* 왼쪽/오른쪽 컬럼 공통 패턴: 바깥(layout-left / layout-right)이 테두리·모서리·배경을
@@ -97,29 +108,29 @@ main {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--card);
-  border: 1px solid var(--line);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 .layout-left-scroll {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px 22px 24px;
+  padding: 24px 24px 24px;
 }
-.left-block { margin-bottom: 22px; }
+.left-block { margin-bottom: 24px; }
 .left-block:last-child { margin-bottom: 0; }
-.left-block + .left-block { padding-top: 20px; border-top: 1px solid var(--line); }
+.left-block + .left-block { padding-top: 24px; border-top: 1px solid var(--border); }
 
 .layout-right {
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--card);
-  border: 1px solid var(--line);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px 22px 0;
+  padding: 24px 24px 0;
 }
 .layout-right .panel-head { flex: 0 0 auto; }
 .layout-right-scroll {
@@ -135,60 +146,61 @@ main {
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 .panel-head h2 { font-size: 15px; margin: 0; color: var(--navy-800); font-weight: 700; }
-.panel-head .meta { font-size: 12px; color: var(--ink-soft); }
+.panel-head .meta { font-size: 12px; color: var(--text-muted); }
 
 /* ---------- Trend chart ---------- */
 .chart-wrap { position: relative; height: 300px; }
-.chart-legend { display: flex; gap: 16px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
-.chart-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); }
+.chart-legend { display: flex; gap: 16px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+.chart-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
 .chart-legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
 /* ---------- 대외변수 참고 (공통 섹션) ---------- */
 /* 좌측 컬럼 폭이 좁아서(약 42%) 가로 나열 대신 세로로 쌓는다 */
-.extvar-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.extvar-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .extvar-card {
-  background: #fbfcfe;
-  border: 1px solid var(--line);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-left: 3px solid var(--navy-700);
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 16px;
 }
-.extvar-card h4 { margin: 0 0 6px; font-size: 12.5px; color: var(--navy-800); }
-.extvar-card p { margin: 3px 0; font-size: 11.5px; color: var(--ink); line-height: 1.45; }
+.extvar-card h4 { margin: 0 0 8px; font-size: 12.5px; color: var(--navy-800); }
+.extvar-card p { margin: 4px 0; font-size: 11.5px; color: var(--text-base); line-height: 1.45; }
 .extvar-card .impl { color: var(--amber); font-weight: 600; }
-.extvar-card .src { color: var(--ink-soft); font-size: 10.5px; margin-top: 6px; }
+.extvar-card .src { color: var(--text-muted); font-size: 10.5px; margin-top: 8px; }
 
 /* ---------- Month board ---------- */
 .month-board {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 .month-card {
-  background: #fbfcfe;
-  border: 1px solid var(--line);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px 15px;
+  box-shadow: 0 1px 2px rgba(20, 32, 74, 0.05);
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
-.month-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.month-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .month-label { font-size: 14px; font-weight: 700; color: var(--navy-800); }
-.prior-value { font-size: 11px; color: var(--ink-soft); font-family: var(--mono); }
+.prior-value { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
 
-.mc-row { border-top: 1px dashed var(--line); padding-top: 9px; }
+.mc-row { border-top: 1px dashed var(--border); padding-top: 8px; }
 .mc-row:first-of-type { border-top: none; padding-top: 0; }
-.mc-row-label { font-size: 11px; color: var(--ink-soft); font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-.mc-row-value { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--ink); }
-.mc-row-value.big { font-size: 18px; color: var(--navy-800); }
+.mc-row-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.mc-row-value { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--text-strong); }
+.mc-row-value.big { font-size: 20px; font-weight: 800; color: var(--navy-800); }
 .mc-row-note {
   font-size: 10.5px;
-  color: var(--ink-soft);
+  color: var(--text-faint);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -197,15 +209,15 @@ main {
 }
 
 .mc-reference.mc-muted .mc-row-value,
-.mc-reference.mc-muted .mc-row-note { color: var(--ink-faint); }
+.mc-reference.mc-muted .mc-row-note { color: var(--text-faint); }
 
 .mc-bound-toggle { display: flex; gap: 4px; }
 .mc-bound-btn {
   flex: 1 1 0;
   min-width: 0;
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--ink-soft);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-faint);
   font-family: var(--mono);
   font-size: 10px;
   font-weight: 700;
@@ -214,26 +226,29 @@ main {
   border-radius: 6px;
   cursor: pointer;
   text-align: center;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 .mc-bound-btn:hover { border-color: var(--navy-700); color: var(--navy-800); }
 .mc-bound-btn.active {
   background: var(--navy-800);
   border-color: var(--navy-800);
   color: #fff;
+  box-shadow: 0 1px 3px rgba(31, 56, 100, 0.35);
 }
 
 .mc-context textarea {
   width: 100%;
   min-height: 40px;
   resize: vertical;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 7px;
-  padding: 7px 8px;
+  padding: 8px;
   font-size: 12px;
   font-family: inherit;
-  color: var(--ink);
+  color: var(--text-base);
+  background: #fff;
 }
+.mc-context textarea::placeholder { color: var(--text-faint); }
 .mc-context textarea:focus {
   outline: none;
   border-color: var(--navy-700);
@@ -250,32 +265,36 @@ main {
 }
 .tag-provisional { font-size: 10.5px; color: var(--amber); font-weight: 600; }
 
-.mc-final-input { display: flex; align-items: center; gap: 6px; }
+.mc-final-input { display: flex; align-items: center; gap: 8px; }
 .mc-final-input input {
   width: 100%;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 6px 7px;
+  padding: 8px;
   font-family: var(--mono);
   font-size: 13px;
-  color: var(--ink);
+  font-weight: 700;
+  color: var(--text-strong);
+  background: #fff;
 }
+.mc-final-input input::placeholder { color: var(--text-faint); font-weight: 400; }
 .mc-final-input input:focus {
   outline: none;
   border-color: var(--navy-700);
   box-shadow: 0 0 0 3px rgba(31, 56, 100, 0.12);
 }
-.mc-final-input .unit { font-size: 11px; color: var(--ink-soft); }
+.mc-final-input .unit { font-size: 11px; color: var(--text-muted); }
 
 .month-summary {
   background: linear-gradient(135deg, var(--navy-900), var(--navy-800));
   border-color: var(--navy-900);
+  box-shadow: none;
 }
 .month-summary .month-label { color: #fff; }
 .month-summary .mc-row { border-top-color: rgba(255,255,255,0.18); }
 .month-summary .mc-row-label { color: rgba(255,255,255,0.7); }
 .month-summary .mc-row-value { color: #fff; }
-.month-summary .mc-row-value.big { color: #fff; font-size: 20px; }
+.month-summary .mc-row-value.big { color: #fff; font-size: 22px; font-weight: 800; }
 
 /* ---------- Toast ---------- */
 .toast {
@@ -301,23 +320,23 @@ main {
      자연스럽게 세로로 스크롤되는 1컬럼(차트 → 대외변수 → 카드)으로 전환한다. */
   html, body { height: auto; }
   body { display: block; min-height: 0; }
-  main { display: block; flex: none; min-height: 0; padding: 22px 24px 60px; }
+  main { display: block; flex: none; min-height: 0; padding: 24px 24px 64px; }
 
   .layout-grid { display: block; }
 
   .layout-left {
     display: block;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
   }
   .layout-left-scroll {
     overflow-y: visible;
-    padding: 20px 22px;
+    padding: 24px;
   }
 
   .layout-right {
     display: block;
-    padding: 20px 22px;
-    margin-bottom: 18px;
+    padding: 24px;
+    margin-bottom: 16px;
   }
   .layout-right-scroll {
     overflow-y: visible;
